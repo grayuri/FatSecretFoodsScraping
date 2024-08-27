@@ -2,12 +2,19 @@ import { IFoodLinks } from "../Interfaces/Entities/IFoodLinks";
 import { FoodLinks } from "../Entities/FoodLinks";
 import { IFoodLinksGetter } from "../Interfaces/Adapters/IFoodLinksGetter";
 
+interface constructorProps {
+  scrapper: any
+  db: any
+}
+
 export class FoodLinksGetter implements IFoodLinksGetter {
   private scrapper: any
+  private db: any
   public foodsLinks: IFoodLinks[]
 
-  constructor(scrapper: any) {
+  constructor({ scrapper, db }: constructorProps) {
     this.scrapper = scrapper
+    this.db = db
     this.foodsLinks = []
   }
 
@@ -57,21 +64,24 @@ export class FoodLinksGetter implements IFoodLinksGetter {
   async getFoodWithRightServingSizeLink(foodLink: string): Promise<string> {
     await this.scrapper.start()
     await this.scrapper.openPage(foodLink)
+
     const elementSelector = "td.borderBottom>a"
     const servingSizesTypes = await this.scrapper.getElements(elementSelector, "innerText")
     const servingSizesTypesLinks = await this.scrapper.getElements(elementSelector, "href")
     const rightServingSizeTypeIndex = servingSizesTypes.indexOf("100 g")
     const rightServingSizeTypeLink = servingSizesTypesLinks[rightServingSizeTypeIndex]
+
     await this.scrapper.finish()
     return rightServingSizeTypeLink
   }
 
   async getAllFoodsLinks() {
-    const foodsCategoryLinks = await this.getFoodsCategoryLinks()
-    const foodsCategoryNames = await this.getFoodsCategoryNames()
+    try {
+      const foodsCategoryLinks = await this.getFoodsCategoryLinks()
+      const foodsCategoryNames = await this.getFoodsCategoryNames()
 
-    for (const [foodsCategoryLinksIndex, foodCategoryLink] of foodsCategoryLinks.entries()) {
-      const data = {} as IFoodLinks
+      for (const [foodsCategoryLinksIndex, foodCategoryLink] of foodsCategoryLinks.entries()) {
+      const data: IFoodLinks = {} as IFoodLinks
       data.foodCategoryLink = foodCategoryLink
       data.categoryName = foodsCategoryNames[foodsCategoryLinksIndex]
 
@@ -90,8 +100,12 @@ export class FoodLinksGetter implements IFoodLinksGetter {
         
         const foodLinks = new FoodLinks(data)
         this.foodsLinks.push(foodLinks)
-        console.log(data)
+        await this.db.writeData(this.foodsLinks)
       }
+    }
+    } 
+    catch (error) {
+      console.log("It was not possible to get your food links.")
     }
   }
 }

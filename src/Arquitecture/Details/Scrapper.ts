@@ -15,7 +15,12 @@ export class Scrapper implements IScrapper {
   }
 
   async openPage(link: string) {
-    await this.page.goto(link)
+    try {
+      await this.page.goto(link)
+    }
+    catch (error) {
+      console.log("It was not possible to visit this current page: ", link)
+    }
   }
   
   async clickIt(element: any) {
