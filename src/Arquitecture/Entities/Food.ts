@@ -8,6 +8,7 @@ export class Food implements IFood{
   public carbs: number
   public protein: number
   public servingSizeGrams: number
+  public slug: string
 
   constructor(data: IFood) {
     this.name = data.name
@@ -17,5 +18,6 @@ export class Food implements IFood{
     this.carbs  = data.carbs
     this.protein  = data.protein
     this.servingSizeGrams  = data.servingSizeGrams
+    this.slug = data.name.toLowerCase().replaceAll(" ", "_")
   }
 }

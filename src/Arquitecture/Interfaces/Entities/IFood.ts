@@ -6,4 +6,5 @@ export interface IFood {
   carbs: number
   protein: number
   servingSizeGrams: number
+  slug: string
 }
